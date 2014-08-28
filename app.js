@@ -11,14 +11,14 @@ process.argv.forEach(function (val, index, array) {
 
 var cheerio = require('cheerio');
 var glob = require("glob");
+var $ = cheerio; // fake jQuery
 
-$ = cheerio; // fake jQuery
 
 // options is optional
 glob('**/*', {}, function (er, files) {
   // files is an array of filenames.
-  // console.log(er);
-  // console.log(files);
+  console.log(er);
+  console.log(files);
   // If the `nonull` option is set, and nothing
   // was found, then files is ["**/*.js"]
   // er is an error object or null.
@@ -34,6 +34,8 @@ fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data) {
 
         return;
     }
+
+    console.log(data);
 
     dom = cheerio.load(data);
 
