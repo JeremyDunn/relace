@@ -6,7 +6,7 @@
         "url": "http://github.com/jasonmccreary/relace.git"
     },
     "dependencies": {
-        "cheerio": "~0.17.0",
+        "cheerio": "joeflynn/cheerio#wrap",
         "glob": "~4.0.5"
     }
 }
