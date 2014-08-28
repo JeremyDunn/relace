@@ -11,6 +11,7 @@ process.argv.forEach(function (val, index, array) {
 
 var cheerio = require('cheerio');
 var glob = require("glob");
+
 $ = cheerio; // fake jQuery
 
 // options is optional
@@ -25,17 +26,14 @@ glob('**/*', {}, function (er, files) {
 
 var fs = require('fs');
 var path = require('path');
-
 var filePath = path.join(__dirname + '/tests/bootswatch.html');
 
-fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
+fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data) {
     if (err) {
         console.log(err);
 
         return;
     }
-
-    console.log(data);
 
     dom = cheerio.load(data);
 
@@ -150,14 +148,14 @@ fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
         var formInputs = doc("input:not([type=checkbox], [type=radio])").addClass("form-control");
         count += formInputs.length;
 
-        // var checkboxLabels = doc("label.checkbox:not(.inline)").removeClass("checkbox").wrap("<div class='checkbox'></div>");
-        // count += checkboxLabels.length;
+        var checkboxLabels = doc("label.checkbox:not(.inline)").removeClass("checkbox").wrap("<div class='checkbox'></div>");
+        count += checkboxLabels.length;
 
         var checkboxInlineLabels = doc(".checkbox.inline").removeClass("inline checkbox").addClass("checkbox-inline");
         count += checkboxInlineLabels.length;
 
-        // var radioLabels = doc("label.radio:not(.inline)").removeClass("radio").wrap("<div class='checkbox'></div>");
-        // count += checkboxLabels.length;
+        var radioLabels = doc("label.radio:not(.inline)").removeClass("radio").wrap("<div class='checkbox'></div>");
+        count += checkboxLabels.length;
 
         var radioInlineLabels = doc(".radio.inline").removeClass("inline radio").addClass("radio-inline");
         count += radioInlineLabels.length;
