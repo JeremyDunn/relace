@@ -7,6 +7,7 @@
     },
     "dependencies": {
         "cheerio": "joeflynn/cheerio#wrap",
-        "glob": "~4.0.5"
+        "glob": "~4.0.5",
+        "nomnom": "~1.8.0"
     }
 }
