@@ -11,6 +11,7 @@ var $ = cheerio; // fake jQuery
 var glob = require("glob");
 var fs = require('fs');
 var path = require('path');
+var mkdirp = require("mkdirp");
 
 //parse argument(s)
 var args = require("nomnom")
@@ -27,7 +28,6 @@ var args = require("nomnom")
         }
     }).parse();
 
-
 if (args.outputDirectory) {
     if (!fs.existsSync(args.outputDirectory) || !fs.lstatSync(args.outputDirectory).isDirectory()) {
         console.log(chalk.red("Output directory " + args.outputDirectory + " is invalid."));
@@ -35,10 +35,20 @@ if (args.outputDirectory) {
     }
 }
 
-//cycle through all file names provided as arguments (handles glob patterns)
-args._.forEach(function (inputFilePath) {
+var filePaths = [];
 
+if (args._.length > 1) {
+    //cycle through all file names provided as arguments
+    args._.forEach(function (inputFilePath) {
+        filePaths.push(inputFilePath);
+    });
+} else {
+    filePaths = glob.sync(args.globString);
+}
+
+filePaths.forEach(function (inputFilePath) {
     fs.readFile(inputFilePath, {encoding: 'utf8'}, function (error, data) {
+
         if (error) {
             console.log(chalk.red(error));
             return;
@@ -49,13 +59,12 @@ args._.forEach(function (inputFilePath) {
         var outputFilePath = inputFilePath;
 
         if (args.outputDirectory) {
-
+            var outputFilePath = args.outputDirectory + "/" + inputFilePath;
         }
 
-        dom = cheerio.load(data);
+        var dom = cheerio.load(data);
         console.log(Upgrader.perform(dom, true, outputFilePath));
     });
-
 });
 
 var RULESET = [
@@ -401,16 +410,22 @@ var Upgrader = {
 
         if (outputFilePath) {
             try {
-                fs.writeFileSync(outputFilePath, output, {encoding: 'utf8'});
-                console.log(chalk.green("Successfully wrote file: " + outputFilePath));
+                console.log(path.dirname(outputFilePath));
+                mkdirp(path.dirname(outputFilePath), function (error) {
+                    if (error) {
+                        console.log(chalk.red(error));
+                    } else {
+                        fs.writeFileSync(outputFilePath, output, {encoding: 'utf8'});
+                        console.log(chalk.green("Successfully wrote file: " + outputFilePath));
+                    }
+                });
             } catch (ex) {
-                console.log(chalk.error("Error writing to file: " + outputFilePath));
+                console.log(chalk.red("Error writing to file: " + outputFilePath));
             }
         }
 
         if (report) {
             return results;
         }
-
     }
 }
