@@ -4,42 +4,58 @@
 // output what changed
 // options?
 
-// print process.argv
-process.argv.forEach(function (val, index, array) {
-    console.log(index + ': ' + val);
-});
 
+var chalk = require("chalk");
 var cheerio = require('cheerio');
-var glob = require("glob");
 var $ = cheerio; // fake jQuery
-
-
-// options is optional
-glob('**/*', {}, function (er, files) {
-  // files is an array of filenames.
-  console.log(er);
-  console.log(files);
-  // If the `nonull` option is set, and nothing
-  // was found, then files is ["**/*.js"]
-  // er is an error object or null.
-});
-
+var glob = require("glob");
 var fs = require('fs');
 var path = require('path');
-var filePath = path.join(__dirname + '/tests/bootswatch.html');
 
-fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data) {
-    if (err) {
-        console.log(err);
+//parse argument(s)
+var args = require("nomnom")
+    .options({
+        globString: {
+            position: 0,
+            help: 'Glob pattern for the files to be processed.',
+            required: true,
+            type: 'string'
+        },
+        'outputDirectory': {
+            abbr: 'o',
+            help: 'Write processed files to this directory'
+        }
+    }).parse();
 
+
+if (args.outputDirectory) {
+    if (!fs.existsSync(args.outputDirectory) || !fs.lstatSync(args.outputDirectory).isDirectory()) {
+        console.log(chalk.red("Output directory " + args.outputDirectory + " is invalid."));
         return;
     }
+}
 
-    console.log(data);
+//cycle through all file names provided as arguments (handles glob patterns)
+args._.forEach(function(inputFilePath) {
 
-    dom = cheerio.load(data);
+    fs.readFile(inputFilePath, {encoding: 'utf8'}, function (error, data) {
+        if (error) {
+            console.log(chalk.red(error));
+            return;
+        }
 
-    console.log(Upgrader.perform(dom));
+        console.log(chalk.yellow("Processing: " + inputFilePath));
+
+        var outputFilePath = inputFilePath;
+
+        if (args.outputDirectory) {
+
+        }
+
+        dom = cheerio.load(data);
+        console.log(Upgrader.perform(dom, true, outputFilePath));
+    });
+
 });
 
 
@@ -70,7 +86,7 @@ fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data) {
           }
         });
 
-        return (count > 0) ? count + " Replaced" : false;
+        return (count > 0) ? count + " Replaced " + this.title : false;
       }
     },
 
@@ -374,22 +390,27 @@ fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data) {
 
   var Upgrader = {
     rules: RULESET,
-    perform: function(input, report) {
+    perform: function(input, report, outputFilePath) {
       var results = [];
       for (var i = 0; i < Upgrader.rules.length; i++) {
         var rule = Upgrader.rules[i];
-        results.push(rule.run(input));
+        results.push(rule.title + ": " + rule.run(input));
       }
 
       var output = input.html();
 
-      if (report) {
-        return {
-          output: output,
-          results: results
+        if (outputFilePath) {
+            try {
+                fs.writeFileSync(outputFilePath, output, {encoding: 'utf8'});
+                console.log(chalk.green("Successfully wrote file: " + outputFilePath));
+            } catch (ex) {
+                console.log(chalk.error("Error writing to file: " + outputFilePath));
+            }
         }
-      } else {
-        return output;
+
+      if (report) {
+        return results;
       }
+
     }
   }
