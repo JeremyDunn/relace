@@ -62,7 +62,9 @@ filePaths.forEach(function (inputFilePath) {
             var outputFilePath = args.outputDirectory + "/" + inputFilePath;
         }
 
-        var dom = cheerio.load(data);
+        var dom = cheerio.load(data, {
+            decodeEntities: false
+        });
         console.log(Upgrader.perform(dom, true, outputFilePath));
     });
 });
